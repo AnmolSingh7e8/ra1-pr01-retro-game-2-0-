@@ -1,5 +1,6 @@
 namespace SpriteKind {
     export const BalaEnemiga = SpriteKind.create()
+    export const Autobus = SpriteKind.create()
 }
 
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function on_on_overlap(proyectil2: Sprite, enemigo2: Sprite) {
@@ -15,10 +16,18 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function on_on_overla
     }
     
 })
+controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
+    animation.runImageAnimation(personaje, assets.animation`
+            animado_arriba
+            `, 200, true)
+})
 sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_on_overlap2(jugador: Sprite, bala_mala: Sprite) {
     sprites.destroy(bala_mala)
     scene.cameraShake(4, 500)
     info.changeLifeBy(-10)
+})
+controller.B.onEvent(ControllerButtonEvent.Pressed, function on_b_pressed() {
+    Abrir_Cofre()
 })
 function Abrir_Cofre() {
     
@@ -77,11 +86,6 @@ function Abrir_Cofre() {
     
 }
 
-controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
-    animation.runImageAnimation(personaje, assets.animation`
-            animado_abajo
-            `, 200, true)
-})
 function disparar() {
     let proyectil: Sprite;
     
@@ -106,23 +110,13 @@ function disparar() {
     
 }
 
-controller.right.onEvent(ControllerButtonEvent.Pressed, function on_right_pressed() {
-    animation.runImageAnimation(personaje, assets.animation`
-            animado_der
-            `, 200, true)
-})
-controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed() {
-    animation.runImageAnimation(personaje, assets.animation`
-            animado_izq
-            `, 200, true)
-})
 controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
     
     if (en_bus) {
-        personaje.setPosition(autobus.x, autobus.y)
+        personaje.setPosition(autobus2.x, autobus2.y)
         controller.moveSprite(personaje, 100, 100)
         scene.cameraFollowSprite(personaje)
-        sprites.destroy(autobus, effects.trail, 500)
+        sprites.destroy(autobus2, effects.trail, 500)
         en_bus = false
         spawnear_npcs()
     } else {
@@ -130,8 +124,10 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
     }
     
 })
-controller.B.onEvent(ControllerButtonEvent.Pressed, function on_b_pressed() {
-    Abrir_Cofre()
+controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed() {
+    animation.runImageAnimation(personaje, assets.animation`
+            animado_izq
+            `, 200, true)
 })
 function spawnear_npcs() {
     let enemigo: Sprite;
@@ -169,9 +165,14 @@ function spawnear_npcs() {
     npcs_vivos = lista_npcs.length
 }
 
-controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
+controller.right.onEvent(ControllerButtonEvent.Pressed, function on_right_pressed() {
     animation.runImageAnimation(personaje, assets.animation`
-            animado_arriba
+            animado_der
+            `, 200, true)
+})
+controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
+    animation.runImageAnimation(personaje, assets.animation`
+            animado_abajo
             `, 200, true)
 })
 function crear_autobus() {
@@ -179,26 +180,48 @@ function crear_autobus() {
     let velocidad_x: number;
     
     en_bus = true
-    autobus = sprites.create(assets.image`
-        autobus
-        `, SpriteKind.Player)
+    //  Crear el autobús con su propio SpriteKind
+    autobus2 = sprites.create(assets.image`autobus`, SpriteKind.Autobus)
+    //  Ignorar todos los tiles y física de jugador
+    autobus2.setFlag(SpriteFlag.Ghost, true)
+    autobus2.setFlag(SpriteFlag.StayInScreen, false)
+    autobus2.setVelocity(65, 0)
+    //  velocidad inicial
+    //  Posición inicial
     if (randint(0, 1) == 0) {
         x_inicio = -40
-        velocidad_x = 60
+        velocidad_x = 65
     } else {
-        x_inicio = scene.screenHeight() * 16 + 40
-        velocidad_x = -60
+        x_inicio = 114 * 16 + 40
+        velocidad_x = -65
     }
     
-    let y_inicio = randint(20, scene.screenWidth() * 16 - 20)
-    autobus.setPosition(x_inicio, y_inicio)
-    autobus.setVelocity(velocidad_x, 0)
-    controller.moveSprite(personaje, 0, 0)
-    scene.cameraFollowSprite(autobus)
+    //  Altura segura en el mapa
+    let y_inicio = randint(20, 114 * 16 - 20)
+    autobus2.setPosition(x_inicio, y_inicio)
+    autobus2.setVelocity(velocidad_x, 0)
+    //  La cámara sigue al autobús
+    scene.cameraFollowSprite(autobus2)
 }
 
+game.onUpdate(function on_update_autobus() {
+    
+    if (en_bus) {
+        //  Mantener jugador sobre el autobús
+        personaje.setPosition(autobus2.x, autobus2.y)
+        //  Detectar si el autobús salió del mapa
+        if (autobus2.x > 114 * 16 + 40 || autobus2.x < -40) {
+            sprites.destroy(autobus2)
+            en_bus = false
+            spawnear_npcs()
+        }
+        
+    }
+    
+})
 let moviendo = false
 let i = 0
+let autobus2 : Sprite = null
 let cofre_abierto = false
 let der = false
 let izq = false
@@ -209,14 +232,15 @@ let col = 0
 let ubicacion : tiles.Location = null
 let npcs_vivos = 0
 let kills = 0
-let personaje : Sprite = null
 let municion_actual = 0
 let ultima_direccion = ""
 let img_enemigo3 : Image = null
 let img_enemigo2 : Image = null
 let img_enemigo1 : Image = null
-let autobus : Sprite = null
-let en_bus = true
+let en_bus = false
+let personaje : Sprite = null
+let MAP_SIZE = 0
+en_bus = true
 img_enemigo1 = assets.image`
     enemigo1
     `
@@ -243,19 +267,23 @@ info.setScore(0)
 info.setLife(vida_jugador)
 crear_autobus()
 game.onUpdate(function on_on_update() {
+    let MAP_SIZE2: number;
     
     if (en_bus) {
-        if (autobus.vx > 0 && autobus.x > scene.screenHeight() * 16 + 40 || autobus.vx < 0 && autobus.x < -40) {
-            personaje.setPosition(autobus.x - 20, autobus.y)
+        MAP_SIZE2 = 114 * 16
+        //  tamaño real del mapa en píxeles
+        //  Cuando el bus sale del mapa
+        if (autobus2.vx > 0 && autobus2.x > MAP_SIZE2 + 40 || autobus2.vx < 0 && autobus2.x < -40) {
+            personaje.setPosition(autobus2.x - 20, autobus2.y)
             controller.moveSprite(personaje, 100, 100)
             scene.cameraFollowSprite(personaje)
-            sprites.destroy(autobus)
+            sprites.destroy(autobus2, effects.trail, 500)
             en_bus = false
             spawnear_npcs()
         }
         
     } else {
-        moviendo = controller.down.isPressed() || (controller.left.isPressed() || (controller.up.isPressed() || controller.right.isPressed()))
+        moviendo = controller.down.isPressed() || controller.left.isPressed() || controller.up.isPressed() || controller.right.isPressed()
         if (controller.up.isPressed()) {
             ultima_direccion = "arriba"
         } else if (controller.down.isPressed()) {
@@ -280,6 +308,12 @@ game.onUpdateInterval(1000, function on_update_interval() {
     let bala: Sprite;
     if (!en_bus) {
         for (let enemigo_actual of sprites.allOfKind(SpriteKind.Enemy)) {
+            //  Ignorar si el enemigo no existe o no tiene imagen
+            if (enemigo_actual == null || enemigo_actual.image == null) {
+                continue
+            }
+            
+            //  Probabilidad de disparar
             if (randint(0, 100) < 50) {
                 vx = 0
                 vy = 0
@@ -287,38 +321,35 @@ game.onUpdateInterval(1000, function on_update_interval() {
                     img_bala = assets.image`
                         proyectil2
                         `
+                    vx = personaje.x > enemigo_actual.x ? 50 : -50
                     vy = 0
-                    if (personaje.x > enemigo_actual.x) {
-                        vx = 50
-                    } else {
-                        vx = -50
-                    }
-                    
-                    bala = sprites.createProjectileFromSprite(img_bala, enemigo_actual, vx, vy)
-                    bala.setKind(SpriteKind.BalaEnemiga)
-                    bala.lifespan = 2000
                 } else if (enemigo_actual.image == img_enemigo3) {
                     img_bala = assets.image`
                         proyectil1
                         `
+                    vx = personaje.x > enemigo_actual.x ? 90 : -90
                     vy = 0
-                    if (personaje.x > enemigo_actual.x) {
-                        vx = 90
-                    } else {
-                        vx = -90
-                    }
-                    
-                    bala = sprites.createProjectileFromSprite(img_bala, enemigo_actual, vx, vy)
-                    bala.setKind(SpriteKind.BalaEnemiga)
-                    bala.lifespan = 800
                 } else if (enemigo_actual.image == img_enemigo2) {
                     img_bala = assets.image`
                         proyectil3
                         `
-                    bala = sprites.createProjectileFromSprite(img_bala, enemigo_actual, 0, 0)
-                    bala.follow(personaje, 130)
+                    vx = 0
+                    vy = 0
+                }
+                
+                //  Crear proyectil solo si img_bala está definida
+                if (img_bala != null) {
+                    bala = sprites.createProjectileFromSprite(img_bala, enemigo_actual, vx, vy)
                     bala.setKind(SpriteKind.BalaEnemiga)
-                    bala.lifespan = 4000
+                    if (enemigo_actual.image == img_enemigo1) {
+                        bala.lifespan = 2000
+                    } else if (enemigo_actual.image == img_enemigo3) {
+                        bala.lifespan = 800
+                    } else if (enemigo_actual.image == img_enemigo2) {
+                        bala.follow(personaje, 130)
+                        bala.lifespan = 4000
+                    }
+                    
                 }
                 
             }
