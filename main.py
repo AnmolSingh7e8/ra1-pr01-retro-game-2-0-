@@ -4,7 +4,11 @@ class SpriteKind:
     Autobus = SpriteKind.create()
     Cursor = SpriteKind.create()
     Boton = SpriteKind.create()
-
+    NPC1 = SpriteKind.create()
+    NPC2 = SpriteKind.create()
+    NPC3 = SpriteKind.create()
+    NPC4 = SpriteKind.create()
+    NPC5 = SpriteKind.create()
 
 def on_on_overlap(proyectil2, enemigo2):
     global kills, npcs_vivos
@@ -18,11 +22,28 @@ def on_on_overlap(proyectil2, enemigo2):
         game.over(True)
 sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, on_on_overlap)
 
+def on_up_pressed():
+    if not (juego_iniciado):
+        return
+    animation.run_image_animation(personaje,
+        assets.animation("""
+            animado_arriba
+            """),
+        200,
+        True)
+controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
+
 def on_on_overlap2(jugador, bala_mala):
     sprites.destroy(bala_mala)
     scene.camera_shake(4, 500)
     info.change_life_by(-10)
 sprites.on_overlap(SpriteKind.player, SpriteKind.BalaEnemiga, on_on_overlap2)
+
+def on_b_pressed():
+    if not (juego_iniciado):
+        return
+    Abrir_Cofre()
+controller.B.on_event(ControllerButtonEvent.PRESSED, on_b_pressed)
 
 def Abrir_Cofre():
     global ubicacion, col, fila, techo, suelo, izq, der, cofre_abierto, municion_actual
@@ -81,18 +102,6 @@ def Abrir_Cofre():
         cofre_abierto = False
     else:
         game.splash("No hay cofre")
-
-def on_down_pressed():
-    if not (juego_iniciado):
-        return
-    animation.run_image_animation(personaje,
-        assets.animation("""
-            animado_abajo
-            """),
-        200,
-        True)
-controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
-
 def disparar():
     global municion_actual
     if municion_actual > 0:
@@ -110,28 +119,6 @@ def disparar():
             proyectil.set_velocity(150, 0)
         proyectil.set_flag(SpriteFlag.AUTO_DESTROY, True)
         proyectil.lifespan = 2000
-
-def on_right_pressed():
-    if not (juego_iniciado):
-        return
-    animation.run_image_animation(personaje,
-        assets.animation("""
-            animado_der
-            """),
-        200,
-        True)
-controller.right.on_event(ControllerButtonEvent.PRESSED, on_right_pressed)
-
-def on_left_pressed():
-    if not (juego_iniciado):
-        return
-    animation.run_image_animation(personaje,
-        assets.animation("""
-            animado_izq
-            """),
-        200,
-        True)
-controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
 
 def on_a_pressed():
     global en_bus
@@ -152,11 +139,16 @@ def on_a_pressed():
         disparar()
 controller.A.on_event(ControllerButtonEvent.PRESSED, on_a_pressed)
 
-def on_b_pressed():
+def on_left_pressed():
     if not (juego_iniciado):
         return
-    Abrir_Cofre()
-controller.B.on_event(ControllerButtonEvent.PRESSED, on_b_pressed)
+    animation.run_image_animation(personaje,
+        assets.animation("""
+            animado_izq
+            """),
+        200,
+        True)
+controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
 
 def spawnear_npcs():
     global i, npcs_vivos
@@ -209,9 +201,22 @@ def iniciar_partida():
     info.set_life(vida_jugador)
     juego_iniciado = True
     crear_autobus()
+    crear_npcs_especiales()
+
+def on_right_pressed():
+    if not (juego_iniciado):
+        return
+    animation.run_image_animation(personaje,
+        assets.animation("""
+            animado_der
+            """),
+        200,
+        True)
+controller.right.on_event(ControllerButtonEvent.PRESSED, on_right_pressed)
+
 # --- FUNCIONES DE MENU ---
 def mostrar_menu():
-    global cursor, boton_jugar
+    global cursor, imagen_hitbox, boton_jugar
     # Asignar la imagen de fondo
     scene.set_background_image(assets.image("""
         pantalla_inicial
@@ -221,22 +226,22 @@ def mostrar_menu():
     cursor.image.fill(1)
     cursor.set_flag(SpriteFlag.STAY_IN_SCREEN, True)
     controller.move_sprite(cursor, 150, 150)
-    imagen_hitbox = image.create(60, 25)  
+    imagen_hitbox = image.create(60, 25)
     imagen_hitbox.fill(3)
     boton_jugar = sprites.create(imagen_hitbox, SpriteKind.Boton)
     boton_jugar.set_position(130, 95)
     boton_jugar.set_flag(SpriteFlag.INVISIBLE, True)
 
-def on_up_pressed():
+def on_down_pressed():
     if not (juego_iniciado):
         return
     animation.run_image_animation(personaje,
         assets.animation("""
-            animado_arriba
+            animado_abajo
             """),
         200,
         True)
-controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
+controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
 
 def crear_autobus():
     global en_bus, autobus2, y_inicio
@@ -263,14 +268,97 @@ def crear_autobus():
     autobus2.set_velocity(velocidad_x, 0)
     # La cámara sigue al autobús
     scene.camera_follow_sprite(autobus2)
+
+def crear_npcs_especiales():
+    # ZONA 1 – CURANDERO
+    npc1 = sprites.create(assets.image("npc_healer"), SpriteKind.NPC1)
+    tiles.place_on_tile(npc1, tiles.get_tile_location(5, 10))
+
+    # ZONA 2 – VELOCIDAD
+    npc2 = sprites.create(assets.image("npc_runner"), SpriteKind.NPC2)
+    tiles.place_on_tile(npc2, tiles.get_tile_location(20, 8))
+
+    # ZONA 3 – MUNICIÓN
+    npc3 = sprites.create(assets.image("npc_ammo"), SpriteKind.NPC3)
+    tiles.place_on_tile(npc3, tiles.get_tile_location(15, 20))
+
+    # ZONA 4 – ESCUDO
+    npc4 = sprites.create(assets.image("npc_shield"), SpriteKind.NPC4)
+    tiles.place_on_tile(npc4, tiles.get_tile_location(25, 25))
+
+    # ZONA 5 – DOBLE DISPARO
+    npc5 = sprites.create(assets.image("npc_fire"), SpriteKind.NPC5)
+    tiles.place_on_tile(npc5, tiles.get_tile_location(35, 10))
+
+def habilidad_curacion():
+    info.change_life_by(+20)
+    game.splash("NPC Curandero", "+20 vida")
+
+def habilidad_velocidad():
+    personaje.vx *= 1.5
+    personaje.vy *= 1.5
+    game.splash("NPC Corredor", "Velocidad +50")
+
+def habilidad_municion():
+    global municion_actual
+    municion_actual += 50
+    game.splash("NPC Munición", "+50 balas")
+
+def habilidad_escudo():
+    global tiene_escudo
+    tiene_escudo = True
+    game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
+
+def habilidad_fire_rate():
+    global fire_rate_boost
+    fire_rate_boost = True
+    game.splash("NPC Maestro del disparo", "¡Disparo doble por 10s!")
+    pause(10000)
+    fire_rate_boost = False
+
+def activar_npc(sprite, npc):
+    tipo = npc.kind()
+    
+    if tipo == SpriteKind.NPC1:
+        habilidad_curacion()
+    elif tipo == SpriteKind.NPC2:
+        habilidad_velocidad()
+    elif tipo == SpriteKind.NPC3:
+        habilidad_municion()
+    elif tipo == SpriteKind.NPC4:
+        habilidad_escudo()
+    elif tipo == SpriteKind.NPC5:
+        habilidad_fire_rate()
+
+    npc.destroy(effects.smiles, 300)
+
+
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC1, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC2, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC3, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC4, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC5, activar_npc)
+
+def on_player_hit_with_shield(jugador, bala):
+    global tiene_escudo
+    if tiene_escudo:
+        tiene_escudo = False
+        sprites.destroy(bala)
+        game.splash("Escudo", "¡Daño bloqueado!")
+    else:
+        sprites.destroy(bala)
+        info.change_life_by(-10)
+
+sprites.on_overlap(SpriteKind.player, SpriteKind.BalaEnemiga, on_player_hit_with_shield)
+
 moviendo = False
 y_inicio = 0
+imagen_hitbox: Image = None
 vida_jugador = 0
 i = 0
 autobus2: Sprite = None
 boton_jugar: Sprite = None
 cursor: Sprite = None
-juego_iniciado = False
 municion_actual = 0
 cofre_abierto = False
 der = False
@@ -280,6 +368,7 @@ techo = False
 fila = 0
 col = 0
 ubicacion: tiles.Location = None
+juego_iniciado = False
 npcs_vivos = 0
 kills = 0
 ultima_direccion = ""
@@ -287,9 +376,11 @@ img_enemigo3: Image = None
 img_enemigo2: Image = None
 img_enemigo1: Image = None
 en_bus = False
-MAP_SIZE = 0
 personaje: Sprite = None
+MAP_SIZE = 0
 en_bus = True
+tiene_escudo = False
+fire_rate_boost = False
 # Cargar assets
 img_enemigo1 = assets.image("""
     enemigo1
@@ -300,6 +391,12 @@ img_enemigo2 = assets.image("""
 img_enemigo3 = assets.image("""
     enemigo3
     """)
+npc_healer = assets.image("npc_healer")
+npc_runner = assets.image("npc_runner")
+npc_ammo = assets.image("npc_ammo")
+npc_shield = assets.image("npc_shield")
+npc_fire = assets.image("npc_fire")
+
 ultima_direccion = "derecha"
 mostrar_menu()
 
