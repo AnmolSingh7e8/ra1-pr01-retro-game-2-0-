@@ -4,7 +4,8 @@
     "dependencies": {
         "device": "*",
         "controller": "*",
-        "arcade-minimap": "github:microsoft/arcade-minimap#master"
+        "arcade-minimap": "github:microsoft/arcade-minimap#master",
+        "pxt-status-bar": "github:jwunderl/pxt-status-bar#v0.4.2"
     },
     "files": [
         "main.blocks",
