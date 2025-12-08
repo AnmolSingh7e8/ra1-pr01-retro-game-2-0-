@@ -79,42 +79,54 @@ El objetivo del juego es derrotar a todos los enemigos y conseguir el **VICTORY 
 
 
 ### Enemigos
-###Enemigo 1
+- Enemigo 1
+
 <img width="575" height="539" alt="Captura de pantalla 2025-12-08 184737" src="https://github.com/user-attachments/assets/1dd76e76-e395-4bb5-8f06-fecd18052d31" />
 
-###Enemigo 2z
+- Enemigo 2
+
 <img width="575" height="605" alt="Captura de pantalla 2025-12-08 184827" src="https://github.com/user-attachments/assets/01968ed1-5c9c-4467-9b30-3c9a3209ac5c" />
 
-###Enemigo 3
+- Enemigo 3
+
 <img width="565" height="557" alt="Captura de pantalla 2025-12-08 185115" src="https://github.com/user-attachments/assets/9040df0e-3396-45d9-8af0-2159a6511765" />
 
-###NPC Curandero
+- NPC Curandero
+
 <img width="550" height="530" alt="Captura de pantalla 2025-12-08 184712" src="https://github.com/user-attachments/assets/b2c0c447-556b-4463-afbf-bbd22d8b3e73" />
 
-###NPC Corredor
+- NPC Corredor
+
 <img width="480" height="579" alt="Captura de pantalla 2025-12-08 184804" src="https://github.com/user-attachments/assets/c5329e3b-67a7-4357-80c1-b102bfdffaf0" />
 
-NPC Munición
+- NPC Munición
+
 <img width="507" height="520" alt="Captura de pantalla 2025-12-08 184702" src="https://github.com/user-attachments/assets/a8b7cb0c-5d0e-4c64-83c5-eb4d3228c6cd" />
 
-###NPC Escudo
+- NPC Escudo
+
 <img width="557" height="552" alt="Captura de pantalla 2025-12-08 184755" src="https://github.com/user-attachments/assets/ed1c369d-8234-4ef5-a4d9-127283027eac" />
 
-###NPC Disparo Doble
+- NPC Disparo Doble
+
 <img width="539" height="544" alt="Captura de pantalla 2025-12-08 184652" src="https://github.com/user-attachments/assets/2f140dcc-5886-4200-882b-93319b437050" />
 
 ### Cofres
-###Cofre Cerrado
+- Cofre Cerrado
+
 <img width="669" height="672" alt="Captura de pantalla 2025-12-08 184905" src="https://github.com/user-attachments/assets/82bf17af-e254-4b4e-84e0-d075dcebaee3" />
 
-###Cofre Abierto
+- Cofre Abierto
+
 <img width="670" height="665" alt="Captura de pantalla 2025-12-08 184916" src="https://github.com/user-attachments/assets/fd19771c-8d05-4fb8-9219-4504b4350220" />
 
 ### Autobús
+
 <img width="657" height="600" alt="Captura de pantalla 2025-12-08 185233" src="https://github.com/user-attachments/assets/090a835e-8c44-4b9c-b024-277787ee4792" />
 
 
 ### Mapa del juego
+
 <img width="733" height="729" alt="mapa" src="https://github.com/user-attachments/assets/331f1c85-85b9-4b49-827f-caa4f4d74e3b" />
 
 
