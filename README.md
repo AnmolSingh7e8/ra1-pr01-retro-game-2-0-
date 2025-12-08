@@ -136,3 +136,10 @@ El objetivo del juego es derrotar a todos los enemigos y conseguir el **VICTORY 
 Sobrevive, administra munición, abre cofres, activa habilidades de NPCs y derrota a todos los enemigos para ganar.
 
 ---
+
+### Demo del juego
+
+https://github.com/user-attachments/assets/0e0e9211-7d02-4599-96c7-a89bcf2dab75
+
+ 
+
