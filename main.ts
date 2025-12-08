@@ -289,19 +289,19 @@ function crear_autobus() {
 function crear_npcs_especiales() {
     //  ZONA 1 – CURANDERO
     let npc1 = sprites.create(assets.image`npc_healer`, SpriteKind.NPC1)
-    tiles.placeOnTile(npc1, tiles.getTileLocation(5, 10))
+    tiles.placeOnTile(npc1, tiles.getTileLocation(29, 35))
     //  ZONA 2 – VELOCIDAD
     let npc2 = sprites.create(assets.image`npc_runner`, SpriteKind.NPC2)
-    tiles.placeOnTile(npc2, tiles.getTileLocation(20, 8))
+    tiles.placeOnTile(npc2, tiles.getTileLocation(84, 92))
     //  ZONA 3 – MUNICIÓN
     let npc3 = sprites.create(assets.image`npc_ammo`, SpriteKind.NPC3)
-    tiles.placeOnTile(npc3, tiles.getTileLocation(15, 20))
+    tiles.placeOnTile(npc3, tiles.getTileLocation(65, 21))
     //  ZONA 4 – ESCUDO
     let npc4 = sprites.create(assets.image`npc_shield`, SpriteKind.NPC4)
-    tiles.placeOnTile(npc4, tiles.getTileLocation(25, 25))
+    tiles.placeOnTile(npc4, tiles.getTileLocation(99, 10))
     //  ZONA 5 – DOBLE DISPARO
     let npc5 = sprites.create(assets.image`npc_fire`, SpriteKind.NPC5)
-    tiles.placeOnTile(npc5, tiles.getTileLocation(35, 10))
+    tiles.placeOnTile(npc5, tiles.getTileLocation(46, 102))
 }
 
 function habilidad_curacion() {

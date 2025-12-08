@@ -272,23 +272,23 @@ def crear_autobus():
 def crear_npcs_especiales():
     # ZONA 1 – CURANDERO
     npc1 = sprites.create(assets.image("npc_healer"), SpriteKind.NPC1)
-    tiles.place_on_tile(npc1, tiles.get_tile_location(5, 10))
+    tiles.place_on_tile(npc1, tiles.get_tile_location(29, 35))
 
     # ZONA 2 – VELOCIDAD
     npc2 = sprites.create(assets.image("npc_runner"), SpriteKind.NPC2)
-    tiles.place_on_tile(npc2, tiles.get_tile_location(20, 8))
+    tiles.place_on_tile(npc2, tiles.get_tile_location(84, 92))
 
     # ZONA 3 – MUNICIÓN
     npc3 = sprites.create(assets.image("npc_ammo"), SpriteKind.NPC3)
-    tiles.place_on_tile(npc3, tiles.get_tile_location(15, 20))
+    tiles.place_on_tile(npc3, tiles.get_tile_location(65, 21))
 
     # ZONA 4 – ESCUDO
     npc4 = sprites.create(assets.image("npc_shield"), SpriteKind.NPC4)
-    tiles.place_on_tile(npc4, tiles.get_tile_location(25, 25))
+    tiles.place_on_tile(npc4, tiles.get_tile_location(99, 10))
 
     # ZONA 5 – DOBLE DISPARO
     npc5 = sprites.create(assets.image("npc_fire"), SpriteKind.NPC5)
-    tiles.place_on_tile(npc5, tiles.get_tile_location(35, 10))
+    tiles.place_on_tile(npc5, tiles.get_tile_location(46, 102))
 
 def habilidad_curacion():
     info.change_life_by(+20)
@@ -391,11 +391,11 @@ img_enemigo2 = assets.image("""
 img_enemigo3 = assets.image("""
     enemigo3
     """)
-npc_healer = assets.image("npc_healer")
-npc_runner = assets.image("npc_runner")
-npc_ammo = assets.image("npc_ammo")
-npc_shield = assets.image("npc_shield")
-npc_fire = assets.image("npc_fire")
+npc_healer = assets.image("""npc_healer""")
+npc_runner = assets.image("""npc_runner""")
+npc_ammo = assets.image("""npc_ammo""")
+npc_shield = assets.image("""npc_shield""")
+npc_fire = assets.image("""npc_fire""")
 
 ultima_direccion = "derecha"
 mostrar_menu()
