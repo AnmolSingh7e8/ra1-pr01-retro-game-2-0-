@@ -50,7 +50,7 @@ El objetivo del juego es derrotar a todos los enemigos y conseguir el **VICTORY 
 
 ### Abrir_Cofre()
 - Detecta la dirección del jugador y si hay un cofre cerca.
-- Si se abre, otorga +30 munición.
+- Si se abre, otorga +10 munición.
 
 ### activar_npc(sprite, npc)
 - Detecta el tipo de NPC con el que colisiona el jugador.
