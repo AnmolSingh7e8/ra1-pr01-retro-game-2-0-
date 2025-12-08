@@ -11,38 +11,44 @@ namespace SpriteKind {
 }
 
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function on_on_overlap(proyectil2: Sprite, enemigo2: Sprite) {
-    
     sprites.destroy(proyectil2)
-    sprites.destroy(enemigo2, effects.fire, 200)
-    kills += 1
-    npcs_vivos += 0 - 1
-    info.changeScoreBy(1)
-    if (npcs_vivos == 0) {
-        game.splash("VICTORY ROYALE!", "Kills: " + ("" + ("" + kills)))
-        game.over(true)
+    let barra_enemigo = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemigo2)
+    if (barra_enemigo) {
+        barra_enemigo.value += -20
+        enemigo2.startEffect(effects.ashes, 100)
     }
     
 })
-controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
-    if (!juego_iniciado) {
-        return
-    }
+function habilidad_escudo() {
     
-    animation.runImageAnimation(personaje, assets.animation`
-            animado_arriba
-            `, 200, true)
-})
+    tiene_escudo = true
+    game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
+}
+
 sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_on_overlap2(jugador: Sprite, bala_mala: Sprite) {
+    
+    let daño_recibido = 0
+    //  Comparar imagenes para saber el daño
+    if (bala_mala.image == assets.image`disparo1`) {
+        daño_recibido = 30
+    } else if (bala_mala.image == assets.image`disparo2`) {
+        daño_recibido = 40
+    } else if (bala_mala.image == assets.image`disparo3`) {
+        daño_recibido = 20
+    } else {
+        daño_recibido = 10
+    }
+    
     sprites.destroy(bala_mala)
     scene.cameraShake(4, 500)
-    info.changeLifeBy(-10)
-})
-controller.B.onEvent(ControllerButtonEvent.Pressed, function on_b_pressed() {
-    if (!juego_iniciado) {
-        return
+    if (tiene_escudo) {
+        personaje.startEffect(effects.fountain, 500)
+        tiene_escudo = false
+        game.splash("¡Escudo roto!", "No recibes daño")
+    } else {
+        info.changeLifeBy(daño_recibido * -1)
     }
     
-    Abrir_Cofre()
 })
 function Abrir_Cofre() {
     
@@ -101,6 +107,49 @@ function Abrir_Cofre() {
     
 }
 
+function crear_npcs_especiales() {
+    
+    //  ZONA 1 – CURANDERO
+    npc1 = sprites.create(assets.image`
+        npc_healer
+        `, SpriteKind.NPC1)
+    tiles.placeOnTile(npc1, tiles.getTileLocation(29, 35))
+    //  ZONA 2 – VELOCIDAD
+    npc2 = sprites.create(assets.image`
+        npc_runner
+        `, SpriteKind.NPC2)
+    tiles.placeOnTile(npc2, tiles.getTileLocation(84, 92))
+    //  ZONA 3 – MUNICIÓN
+    npc3 = sprites.create(assets.image`
+        npc_ammo
+        `, SpriteKind.NPC3)
+    tiles.placeOnTile(npc3, tiles.getTileLocation(65, 21))
+    //  ZONA 4 – ESCUDO
+    npc4 = sprites.create(assets.image`
+        npc_shield
+        `, SpriteKind.NPC4)
+    tiles.placeOnTile(npc4, tiles.getTileLocation(99, 10))
+    //  ZONA 5 – DOBLE DISPARO
+    npc5 = sprites.create(assets.image`
+        npc_fire
+        `, SpriteKind.NPC5)
+    tiles.placeOnTile(npc5, tiles.getTileLocation(46, 102))
+}
+
+controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
+    if (!juego_iniciado) {
+        return
+    }
+    
+    animation.runImageAnimation(personaje, assets.animation`
+            animado_abajo
+            `, 200, true)
+})
+function habilidad_velocidad() {
+    controller.moveSprite(personaje, 150, 150)
+    game.splash("NPC Corredor", "Velocidad aumentada!")
+}
+
 function disparar() {
     let proyectil: Sprite;
     
@@ -125,6 +174,29 @@ function disparar() {
     
 }
 
+controller.right.onEvent(ControllerButtonEvent.Pressed, function on_right_pressed() {
+    if (!juego_iniciado) {
+        return
+    }
+    
+    animation.runImageAnimation(personaje, assets.animation`
+            animado_der
+            `, 200, true)
+})
+function habilidad_curacion() {
+    info.changeLifeBy(20)
+    game.splash("NPC Curandero", "+20 vida")
+}
+
+controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed() {
+    if (!juego_iniciado) {
+        return
+    }
+    
+    animation.runImageAnimation(personaje, assets.animation`
+            animado_izq
+            `, 200, true)
+})
 controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
     
     //  Logica del menu inicial
@@ -149,45 +221,80 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
     }
     
 })
-controller.left.onEvent(ControllerButtonEvent.Pressed, function on_left_pressed() {
+controller.B.onEvent(ControllerButtonEvent.Pressed, function on_b_pressed() {
     if (!juego_iniciado) {
         return
     }
     
-    animation.runImageAnimation(personaje, assets.animation`
-            animado_izq
-            `, 200, true)
+    Abrir_Cofre()
 })
+function habilidad_fire_rate() {
+    
+    fire_rate_boost = true
+    game.splash("NPC Maestro del disparo", "¡Disparo doble por 10s!")
+    pause(10000)
+    fire_rate_boost = false
+}
+
+function activar_npc(sprite: Sprite, npc: Sprite) {
+    
+    tipo = npc.kind()
+    if (tipo == SpriteKind.NPC1) {
+        habilidad_curacion()
+    } else if (tipo == SpriteKind.NPC2) {
+        habilidad_velocidad()
+    } else if (tipo == SpriteKind.NPC3) {
+        habilidad_municion()
+    } else if (tipo == SpriteKind.NPC4) {
+        habilidad_escudo()
+    } else if (tipo == SpriteKind.NPC5) {
+        habilidad_fire_rate()
+    }
+    
+    npc.destroy(effects.smiles, 300)
+}
+
 function spawnear_npcs() {
     let enemigo: Sprite;
+    let barra: StatusBarSprite;
     
     let lista_npcs : Sprite[] = []
+    //  Creación de enemigos con diferente vida según que haga cada uno
     while (i < 5) {
         enemigo = sprites.create(img_enemigo1, SpriteKind.Enemy)
-        tiles.placeOnRandomTile(enemigo, assets.tile`
-            myTile6
-            `)
+        tiles.placeOnRandomTile(enemigo, assets.tile`myTile6`)
         enemigo.follow(personaje, 40)
+        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra.attachToSprite(enemigo)
+        barra.max = 100
+        barra.value = 100
+        barra.setColor(7, 2)
         lista_npcs.push(enemigo)
         i += 1
     }
     i = 0
     while (i < 5) {
         enemigo = sprites.create(img_enemigo2, SpriteKind.Enemy)
-        tiles.placeOnRandomTile(enemigo, assets.tile`
-            myTile6
-            `)
+        tiles.placeOnRandomTile(enemigo, assets.tile`myTile6`)
+        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra.attachToSprite(enemigo)
+        barra.max = 40
+        barra.value = 40
+        barra.setColor(7, 2)
         lista_npcs.push(enemigo)
         i += 1
     }
     i = 0
     while (i < 5) {
         enemigo = sprites.create(img_enemigo3, SpriteKind.Enemy)
-        tiles.placeOnRandomTile(enemigo, assets.tile`
-            myTile6
-            `)
+        tiles.placeOnRandomTile(enemigo, assets.tile`myTile6`)
         enemigo.setVelocity(50, 0)
         enemigo.setBounceOnWall(true)
+        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra.attachToSprite(enemigo)
+        barra.max = 60
+        barra.value = 60
+        barra.setColor(7, 2)
         lista_npcs.push(enemigo)
         i += 1
     }
@@ -218,15 +325,6 @@ function iniciar_partida() {
     crear_npcs_especiales()
 }
 
-controller.right.onEvent(ControllerButtonEvent.Pressed, function on_right_pressed() {
-    if (!juego_iniciado) {
-        return
-    }
-    
-    animation.runImageAnimation(personaje, assets.animation`
-            animado_der
-            `, 200, true)
-})
 //  --- FUNCIONES DE MENU ---
 function mostrar_menu() {
     
@@ -246,13 +344,13 @@ function mostrar_menu() {
     boton_jugar.setFlag(SpriteFlag.Invisible, true)
 }
 
-controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed() {
+controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
     if (!juego_iniciado) {
         return
     }
     
     animation.runImageAnimation(personaje, assets.animation`
-            animado_abajo
+            animado_arriba
             `, 200, true)
 })
 function crear_autobus() {
@@ -286,97 +384,28 @@ function crear_autobus() {
     scene.cameraFollowSprite(autobus2)
 }
 
-function crear_npcs_especiales() {
-    //  ZONA 1 – CURANDERO
-    let npc1 = sprites.create(assets.image`npc_healer`, SpriteKind.NPC1)
-    tiles.placeOnTile(npc1, tiles.getTileLocation(29, 35))
-    //  ZONA 2 – VELOCIDAD
-    let npc2 = sprites.create(assets.image`npc_runner`, SpriteKind.NPC2)
-    tiles.placeOnTile(npc2, tiles.getTileLocation(84, 92))
-    //  ZONA 3 – MUNICIÓN
-    let npc3 = sprites.create(assets.image`npc_ammo`, SpriteKind.NPC3)
-    tiles.placeOnTile(npc3, tiles.getTileLocation(65, 21))
-    //  ZONA 4 – ESCUDO
-    let npc4 = sprites.create(assets.image`npc_shield`, SpriteKind.NPC4)
-    tiles.placeOnTile(npc4, tiles.getTileLocation(99, 10))
-    //  ZONA 5 – DOBLE DISPARO
-    let npc5 = sprites.create(assets.image`npc_fire`, SpriteKind.NPC5)
-    tiles.placeOnTile(npc5, tiles.getTileLocation(46, 102))
-}
-
-function habilidad_curacion() {
-    info.changeLifeBy(+20)
-    game.splash("NPC Curandero", "+20 vida")
-}
-
-function habilidad_velocidad() {
-    personaje.vx *= 1.5
-    personaje.vy *= 1.5
-    game.splash("NPC Corredor", "Velocidad +50")
-}
-
 function habilidad_municion() {
     
     municion_actual += 50
     game.splash("NPC Munición", "+50 balas")
 }
 
-function habilidad_escudo() {
-    
-    tiene_escudo = true
-    game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
-}
-
-function habilidad_fire_rate() {
-    
-    fire_rate_boost = true
-    game.splash("NPC Maestro del disparo", "¡Disparo doble por 10s!")
-    pause(10000)
-    fire_rate_boost = false
-}
-
-function activar_npc(sprite: Sprite, npc: Sprite) {
-    let tipo = npc.kind()
-    if (tipo == SpriteKind.NPC1) {
-        habilidad_curacion()
-    } else if (tipo == SpriteKind.NPC2) {
-        habilidad_velocidad()
-    } else if (tipo == SpriteKind.NPC3) {
-        habilidad_municion()
-    } else if (tipo == SpriteKind.NPC4) {
-        habilidad_escudo()
-    } else if (tipo == SpriteKind.NPC5) {
-        habilidad_fire_rate()
-    }
-    
-    npc.destroy(effects.smiles, 300)
-}
-
-sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC1, activar_npc)
-sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC2, activar_npc)
-sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC3, activar_npc)
-sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC4, activar_npc)
-sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC5, activar_npc)
-sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_player_hit_with_shield(jugador: Sprite, bala: Sprite) {
-    
-    if (tiene_escudo) {
-        tiene_escudo = false
-        sprites.destroy(bala)
-        game.splash("Escudo", "¡Daño bloqueado!")
-    } else {
-        sprites.destroy(bala)
-        info.changeLifeBy(-10)
-    }
-    
-})
 let moviendo = false
 let y_inicio = 0
 let imagen_hitbox : Image = null
 let vida_jugador = 0
 let i = 0
+let tipo = 0
+let fire_rate_boost = false
 let autobus2 : Sprite = null
 let boton_jugar : Sprite = null
 let cursor : Sprite = null
+let juego_iniciado = false
+let npc5 : Sprite = null
+let npc4 : Sprite = null
+let npc3 : Sprite = null
+let npc2 : Sprite = null
+let npc1 : Sprite = null
 let municion_actual = 0
 let cofre_abierto = false
 let der = false
@@ -386,7 +415,7 @@ let techo = false
 let fila = 0
 let col = 0
 let ubicacion : tiles.Location = null
-let juego_iniciado = false
+let tiene_escudo = false
 let npcs_vivos = 0
 let kills = 0
 let ultima_direccion = ""
@@ -396,9 +425,12 @@ let img_enemigo1 : Image = null
 let en_bus = false
 let personaje : Sprite = null
 let MAP_SIZE = 0
+sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC1, activar_npc)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC2, activar_npc)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC3, activar_npc)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC4, activar_npc)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC5, activar_npc)
 en_bus = true
-let tiene_escudo = false
-let fire_rate_boost = false
 //  Cargar assets
 img_enemigo1 = assets.image`
     enemigo1
@@ -409,11 +441,21 @@ img_enemigo2 = assets.image`
 img_enemigo3 = assets.image`
     enemigo3
     `
-let npc_healer = assets.image`npc_healer`
-let npc_runner = assets.image`npc_runner`
-let npc_ammo = assets.image`npc_ammo`
-let npc_shield = assets.image`npc_shield`
-let npc_fire = assets.image`npc_fire`
+let npc_healer = assets.image`
+    npc_healer
+    `
+let npc_runner = assets.image`
+    npc_runner
+    `
+let npc_ammo = assets.image`
+    npc_ammo
+    `
+let npc_shield = assets.image`
+    npc_shield
+    `
+let npc_fire = assets.image`
+    npc_fire
+    `
 ultima_direccion = "derecha"
 mostrar_menu()
 game.onUpdate(function on_on_update() {
@@ -476,63 +518,71 @@ game.onUpdate(function on_on_update2() {
     
 })
 game.onUpdateInterval(1000, function on_update_interval() {
+    let img_bala: Image;
+    let velocidad_bala: number;
+    let vida_bala: number;
+    let bala: Sprite;
+    let dx: number;
+    let dy: number;
+    let angulo: number;
     let vx: number;
     let vy: number;
-    let img_bala: Image;
-    let bala: Sprite;
-    if (!juego_iniciado) {
+    if (!juego_iniciado || en_bus) {
         return
     }
     
-    if (!en_bus) {
-        for (let enemigo_actual of sprites.allOfKind(SpriteKind.Enemy)) {
-            //  Ignorar si el enemigo no existe o no tiene imagen
-            if (enemigo_actual == null || enemigo_actual.image == null) {
-                continue
+    for (let enemigo_actual of sprites.allOfKind(SpriteKind.Enemy)) {
+        if (enemigo_actual == null || enemigo_actual.image == null) {
+            continue
+        }
+        
+        //  Probabilidad de disparo
+        if (randint(0, 100) < 50) {
+            img_bala = null
+            velocidad_bala = 0
+            vida_bala = 0
+            //  Enemigos con escopeta, fusil y francotirador
+            if (enemigo_actual.image == img_enemigo1) {
+                img_bala = assets.image`disparo1`
+                velocidad_bala = 60
+                vida_bala = 600
+            } else if (enemigo_actual.image == img_enemigo2) {
+                img_bala = assets.image`disparo2`
+                velocidad_bala = 180
+                vida_bala = 3000
+            } else if (enemigo_actual.image == img_enemigo3) {
+                img_bala = assets.image`disparo3`
+                velocidad_bala = 100
+                vida_bala = 1500
             }
             
-            //  Probabilidad de disparar
-            if (randint(0, 100) < 50) {
-                vx = 0
-                vy = 0
-                if (enemigo_actual.image == img_enemigo1) {
-                    img_bala = assets.image`
-                        proyectil2
-                        `
-                    vx = personaje.x > enemigo_actual.x ? 50 : -50
-                    vy = 0
-                } else if (enemigo_actual.image == img_enemigo3) {
-                    img_bala = assets.image`
-                        proyectil1
-                        `
-                    vx = personaje.x > enemigo_actual.x ? 90 : -90
-                    vy = 0
-                } else if (enemigo_actual.image == img_enemigo2) {
-                    img_bala = assets.image`
-                        proyectil3
-                        `
-                    vx = 0
-                    vy = 0
-                }
-                
-                //  Crear proyectil solo si img_bala está definida
-                if (img_bala != null) {
-                    bala = sprites.createProjectileFromSprite(img_bala, enemigo_actual, vx, vy)
-                    bala.setKind(SpriteKind.BalaEnemiga)
-                    if (enemigo_actual.image == img_enemigo1) {
-                        bala.lifespan = 2000
-                    } else if (enemigo_actual.image == img_enemigo3) {
-                        bala.lifespan = 800
-                    } else if (enemigo_actual.image == img_enemigo2) {
-                        bala.follow(personaje, 130)
-                        bala.lifespan = 4000
-                    }
-                    
-                }
-                
+            //  Disparo con punteria calculando la posición del Jugador
+            if (img_bala != null) {
+                bala = sprites.createProjectileFromSprite(img_bala, enemigo_actual, 0, 0)
+                bala.setKind(SpriteKind.BalaEnemiga)
+                dx = personaje.x - enemigo_actual.x
+                dy = personaje.y - enemigo_actual.y
+                angulo = Math.atan2(dy, dx)
+                vx = Math.cos(angulo) * velocidad_bala
+                vy = Math.sin(angulo) * velocidad_bala
+                bala.setVelocity(vx, vy)
+                bala.lifespan = vida_bala
             }
             
         }
+        
+    }
+})
+statusbars.onZero(StatusBarKind.EnemyHealth, function on_status_bar_zero(status: StatusBarSprite) {
+    
+    let enemigo_muerto = status.spriteAttachedTo()
+    sprites.destroy(enemigo_muerto, effects.fire, 500)
+    kills += 1
+    npcs_vivos -= 1
+    info.changeScoreBy(1)
+    if (npcs_vivos == 0) {
+        game.splash("VICTORY ROYALE!", "Kills: " + ("" + kills))
+        game.over(true)
     }
     
 })

@@ -11,39 +11,42 @@ class SpriteKind:
     NPC5 = SpriteKind.create()
 
 def on_on_overlap(proyectil2, enemigo2):
-    global kills, npcs_vivos
-    sprites.destroy(proyectil2)
-    sprites.destroy(enemigo2, effects.fire, 200)
-    kills += 1
-    npcs_vivos += 0 - 1
-    info.change_score_by(1)
-    if npcs_vivos == 0:
-        game.splash("VICTORY ROYALE!", "Kills: " + ("" + str(kills)))
-        game.over(True)
+    sprites.destroy(proyectil2) 
+    barra_enemigo = statusbars.get_status_bar_attached_to(StatusBarKind.EnemyHealth, enemigo2)
+    if barra_enemigo:
+        barra_enemigo.value += -20
+        enemigo2.start_effect(effects.ashes, 100)
 sprites.on_overlap(SpriteKind.projectile, SpriteKind.enemy, on_on_overlap)
 
-def on_up_pressed():
-    if not (juego_iniciado):
-        return
-    animation.run_image_animation(personaje,
-        assets.animation("""
-            animado_arriba
-            """),
-        200,
-        True)
-controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
+def habilidad_escudo():
+    global tiene_escudo
+    tiene_escudo = True
+    game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
 
 def on_on_overlap2(jugador, bala_mala):
+    global tiene_escudo
+    daño_recibido = 0
+
+    # Comparar imagenes para saber el daño
+    if bala_mala.image == assets.image("""disparo1"""):
+        daño_recibido = 30 
+    elif bala_mala.image == assets.image("""disparo2"""):
+        daño_recibido = 40
+    elif bala_mala.image == assets.image("""disparo3"""):
+        daño_recibido = 20 
+    else:
+        daño_recibido = 10
+
     sprites.destroy(bala_mala)
     scene.camera_shake(4, 500)
-    info.change_life_by(-10)
+    
+    if tiene_escudo:
+        personaje.start_effect(effects.fountain, 500)
+        tiene_escudo = False
+        game.splash("¡Escudo roto!", "No recibes daño")
+    else:
+        info.change_life_by(daño_recibido * -1)
 sprites.on_overlap(SpriteKind.player, SpriteKind.BalaEnemiga, on_on_overlap2)
-
-def on_b_pressed():
-    if not (juego_iniciado):
-        return
-    Abrir_Cofre()
-controller.B.on_event(ControllerButtonEvent.PRESSED, on_b_pressed)
 
 def Abrir_Cofre():
     global ubicacion, col, fila, techo, suelo, izq, der, cofre_abierto, municion_actual
@@ -102,6 +105,48 @@ def Abrir_Cofre():
         cofre_abierto = False
     else:
         game.splash("No hay cofre")
+def crear_npcs_especiales():
+    global npc1, npc2, npc3, npc4, npc5
+    # ZONA 1 – CURANDERO
+    npc1 = sprites.create(assets.image("""
+        npc_healer
+        """), SpriteKind.NPC1)
+    tiles.place_on_tile(npc1, tiles.get_tile_location(29, 35))
+    # ZONA 2 – VELOCIDAD
+    npc2 = sprites.create(assets.image("""
+        npc_runner
+        """), SpriteKind.NPC2)
+    tiles.place_on_tile(npc2, tiles.get_tile_location(84, 92))
+    # ZONA 3 – MUNICIÓN
+    npc3 = sprites.create(assets.image("""
+        npc_ammo
+        """), SpriteKind.NPC3)
+    tiles.place_on_tile(npc3, tiles.get_tile_location(65, 21))
+    # ZONA 4 – ESCUDO
+    npc4 = sprites.create(assets.image("""
+        npc_shield
+        """), SpriteKind.NPC4)
+    tiles.place_on_tile(npc4, tiles.get_tile_location(99, 10))
+    # ZONA 5 – DOBLE DISPARO
+    npc5 = sprites.create(assets.image("""
+        npc_fire
+        """), SpriteKind.NPC5)
+    tiles.place_on_tile(npc5, tiles.get_tile_location(46, 102))
+
+def on_down_pressed():
+    if not (juego_iniciado):
+        return
+    animation.run_image_animation(personaje,
+        assets.animation("""
+            animado_abajo
+            """),
+        200,
+        True)
+controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
+
+def habilidad_velocidad():
+    controller.move_sprite(personaje, 150, 150)
+    game.splash("NPC Corredor", "Velocidad aumentada!")
 def disparar():
     global municion_actual
     if municion_actual > 0:
@@ -119,6 +164,32 @@ def disparar():
             proyectil.set_velocity(150, 0)
         proyectil.set_flag(SpriteFlag.AUTO_DESTROY, True)
         proyectil.lifespan = 2000
+
+def on_right_pressed():
+    if not (juego_iniciado):
+        return
+    animation.run_image_animation(personaje,
+        assets.animation("""
+            animado_der
+            """),
+        200,
+        True)
+controller.right.on_event(ControllerButtonEvent.PRESSED, on_right_pressed)
+
+def habilidad_curacion():
+    info.change_life_by(20)
+    game.splash("NPC Curandero", "+20 vida")
+
+def on_left_pressed():
+    if not (juego_iniciado):
+        return
+    animation.run_image_animation(personaje,
+        assets.animation("""
+            animado_izq
+            """),
+        200,
+        True)
+controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
 
 def on_a_pressed():
     global en_bus
@@ -139,47 +210,84 @@ def on_a_pressed():
         disparar()
 controller.A.on_event(ControllerButtonEvent.PRESSED, on_a_pressed)
 
-def on_left_pressed():
+def on_b_pressed():
     if not (juego_iniciado):
         return
-    animation.run_image_animation(personaje,
-        assets.animation("""
-            animado_izq
-            """),
-        200,
-        True)
-controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
+    Abrir_Cofre()
+controller.B.on_event(ControllerButtonEvent.PRESSED, on_b_pressed)
+
+def habilidad_fire_rate():
+    global fire_rate_boost
+    fire_rate_boost = True
+    game.splash("NPC Maestro del disparo", "¡Disparo doble por 10s!")
+    pause(10000)
+    fire_rate_boost = False
+def activar_npc(sprite: Sprite, npc: Sprite):
+    global tipo
+    tipo = npc.kind()
+    if tipo == SpriteKind.NPC1:
+        habilidad_curacion()
+    elif tipo == SpriteKind.NPC2:
+        habilidad_velocidad()
+    elif tipo == SpriteKind.NPC3:
+        habilidad_municion()
+    elif tipo == SpriteKind.NPC4:
+        habilidad_escudo()
+    elif tipo == SpriteKind.NPC5:
+        habilidad_fire_rate()
+    npc.destroy(effects.smiles, 300)
 
 def spawnear_npcs():
     global i, npcs_vivos
     lista_npcs: List[Sprite] = []
+    
+    # Creación de enemigos con diferente vida según que haga cada uno
     while i < 5:
         enemigo = sprites.create(img_enemigo1, SpriteKind.enemy)
-        tiles.place_on_random_tile(enemigo, assets.tile("""
-            myTile6
-            """))
+        tiles.place_on_random_tile(enemigo, assets.tile("""myTile6"""))
         enemigo.follow(personaje, 40)
+        
+        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra.attach_to_sprite(enemigo) 
+        barra.max = 100 
+        barra.value = 100 
+        barra.set_color(7, 2) 
+        
         lista_npcs.append(enemigo)
         i += 1
+        
     i = 0
+  
     while i < 5:
         enemigo = sprites.create(img_enemigo2, SpriteKind.enemy)
-        tiles.place_on_random_tile(enemigo, assets.tile("""
-            myTile6
-            """))
+        tiles.place_on_random_tile(enemigo, assets.tile("""myTile6"""))
+        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra.attach_to_sprite(enemigo)
+        barra.max = 40
+        barra.value = 40
+        barra.set_color(7, 2)
         lista_npcs.append(enemigo)
         i += 1
+        
     i = 0
+
     while i < 5:
         enemigo = sprites.create(img_enemigo3, SpriteKind.enemy)
-        tiles.place_on_random_tile(enemigo, assets.tile("""
-            myTile6
-            """))
+        tiles.place_on_random_tile(enemigo, assets.tile("""myTile6"""))
         enemigo.set_velocity(50, 0)
         enemigo.set_bounce_on_wall(True)
+        
+        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra.attach_to_sprite(enemigo)
+        barra.max = 60
+        barra.value = 60
+        barra.set_color(7, 2)
+        
         lista_npcs.append(enemigo)
         i += 1
+        
     npcs_vivos = len(lista_npcs)
+
 def iniciar_partida():
     global municion_actual, vida_jugador, personaje, juego_iniciado
     sprites.destroy(cursor)
@@ -202,18 +310,6 @@ def iniciar_partida():
     juego_iniciado = True
     crear_autobus()
     crear_npcs_especiales()
-
-def on_right_pressed():
-    if not (juego_iniciado):
-        return
-    animation.run_image_animation(personaje,
-        assets.animation("""
-            animado_der
-            """),
-        200,
-        True)
-controller.right.on_event(ControllerButtonEvent.PRESSED, on_right_pressed)
-
 # --- FUNCIONES DE MENU ---
 def mostrar_menu():
     global cursor, imagen_hitbox, boton_jugar
@@ -232,16 +328,16 @@ def mostrar_menu():
     boton_jugar.set_position(130, 95)
     boton_jugar.set_flag(SpriteFlag.INVISIBLE, True)
 
-def on_down_pressed():
+def on_up_pressed():
     if not (juego_iniciado):
         return
     animation.run_image_animation(personaje,
         assets.animation("""
-            animado_abajo
+            animado_arriba
             """),
         200,
         True)
-controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
+controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
 
 def crear_autobus():
     global en_bus, autobus2, y_inicio
@@ -268,97 +364,26 @@ def crear_autobus():
     autobus2.set_velocity(velocidad_x, 0)
     # La cámara sigue al autobús
     scene.camera_follow_sprite(autobus2)
-
-def crear_npcs_especiales():
-    # ZONA 1 – CURANDERO
-    npc1 = sprites.create(assets.image("npc_healer"), SpriteKind.NPC1)
-    tiles.place_on_tile(npc1, tiles.get_tile_location(29, 35))
-
-    # ZONA 2 – VELOCIDAD
-    npc2 = sprites.create(assets.image("npc_runner"), SpriteKind.NPC2)
-    tiles.place_on_tile(npc2, tiles.get_tile_location(84, 92))
-
-    # ZONA 3 – MUNICIÓN
-    npc3 = sprites.create(assets.image("npc_ammo"), SpriteKind.NPC3)
-    tiles.place_on_tile(npc3, tiles.get_tile_location(65, 21))
-
-    # ZONA 4 – ESCUDO
-    npc4 = sprites.create(assets.image("npc_shield"), SpriteKind.NPC4)
-    tiles.place_on_tile(npc4, tiles.get_tile_location(99, 10))
-
-    # ZONA 5 – DOBLE DISPARO
-    npc5 = sprites.create(assets.image("npc_fire"), SpriteKind.NPC5)
-    tiles.place_on_tile(npc5, tiles.get_tile_location(46, 102))
-
-def habilidad_curacion():
-    info.change_life_by(+20)
-    game.splash("NPC Curandero", "+20 vida")
-
-def habilidad_velocidad():
-    personaje.vx *= 1.5
-    personaje.vy *= 1.5
-    game.splash("NPC Corredor", "Velocidad +50")
-
 def habilidad_municion():
     global municion_actual
     municion_actual += 50
     game.splash("NPC Munición", "+50 balas")
-
-def habilidad_escudo():
-    global tiene_escudo
-    tiene_escudo = True
-    game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
-
-def habilidad_fire_rate():
-    global fire_rate_boost
-    fire_rate_boost = True
-    game.splash("NPC Maestro del disparo", "¡Disparo doble por 10s!")
-    pause(10000)
-    fire_rate_boost = False
-
-def activar_npc(sprite, npc):
-    tipo = npc.kind()
-    
-    if tipo == SpriteKind.NPC1:
-        habilidad_curacion()
-    elif tipo == SpriteKind.NPC2:
-        habilidad_velocidad()
-    elif tipo == SpriteKind.NPC3:
-        habilidad_municion()
-    elif tipo == SpriteKind.NPC4:
-        habilidad_escudo()
-    elif tipo == SpriteKind.NPC5:
-        habilidad_fire_rate()
-
-    npc.destroy(effects.smiles, 300)
-
-
-sprites.on_overlap(SpriteKind.player, SpriteKind.NPC1, activar_npc)
-sprites.on_overlap(SpriteKind.player, SpriteKind.NPC2, activar_npc)
-sprites.on_overlap(SpriteKind.player, SpriteKind.NPC3, activar_npc)
-sprites.on_overlap(SpriteKind.player, SpriteKind.NPC4, activar_npc)
-sprites.on_overlap(SpriteKind.player, SpriteKind.NPC5, activar_npc)
-
-def on_player_hit_with_shield(jugador, bala):
-    global tiene_escudo
-    if tiene_escudo:
-        tiene_escudo = False
-        sprites.destroy(bala)
-        game.splash("Escudo", "¡Daño bloqueado!")
-    else:
-        sprites.destroy(bala)
-        info.change_life_by(-10)
-
-sprites.on_overlap(SpriteKind.player, SpriteKind.BalaEnemiga, on_player_hit_with_shield)
-
 moviendo = False
 y_inicio = 0
 imagen_hitbox: Image = None
 vida_jugador = 0
 i = 0
+tipo = 0
+fire_rate_boost = False
 autobus2: Sprite = None
 boton_jugar: Sprite = None
 cursor: Sprite = None
+juego_iniciado = False
+npc5: Sprite = None
+npc4: Sprite = None
+npc3: Sprite = None
+npc2: Sprite = None
+npc1: Sprite = None
 municion_actual = 0
 cofre_abierto = False
 der = False
@@ -368,7 +393,7 @@ techo = False
 fila = 0
 col = 0
 ubicacion: tiles.Location = None
-juego_iniciado = False
+tiene_escudo = False
 npcs_vivos = 0
 kills = 0
 ultima_direccion = ""
@@ -378,9 +403,12 @@ img_enemigo1: Image = None
 en_bus = False
 personaje: Sprite = None
 MAP_SIZE = 0
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC1, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC2, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC3, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC4, activar_npc)
+sprites.on_overlap(SpriteKind.player, SpriteKind.NPC5, activar_npc)
 en_bus = True
-tiene_escudo = False
-fire_rate_boost = False
 # Cargar assets
 img_enemigo1 = assets.image("""
     enemigo1
@@ -391,12 +419,21 @@ img_enemigo2 = assets.image("""
 img_enemigo3 = assets.image("""
     enemigo3
     """)
-npc_healer = assets.image("""npc_healer""")
-npc_runner = assets.image("""npc_runner""")
-npc_ammo = assets.image("""npc_ammo""")
-npc_shield = assets.image("""npc_shield""")
-npc_fire = assets.image("""npc_fire""")
-
+npc_healer = assets.image("""
+    npc_healer
+    """)
+npc_runner = assets.image("""
+    npc_runner
+    """)
+npc_ammo = assets.image("""
+    npc_ammo
+    """)
+npc_shield = assets.image("""
+    npc_shield
+    """)
+npc_fire = assets.image("""
+    npc_fire
+    """)
 ultima_direccion = "derecha"
 mostrar_menu()
 
@@ -445,44 +482,65 @@ def on_on_update2():
 game.on_update(on_on_update2)
 
 def on_update_interval():
-    if not (juego_iniciado):
+    if not (juego_iniciado) or en_bus:
         return
-    if not (en_bus):
-        for enemigo_actual in sprites.all_of_kind(SpriteKind.enemy):
-            # Ignorar si el enemigo no existe o no tiene imagen
-            if enemigo_actual == None or enemigo_actual.image == None:
-                continue
-            # Probabilidad de disparar
-            if randint(0, 100) < 50:
-                vx = 0
-                vy = 0
-                if enemigo_actual.image == img_enemigo1:
-                    img_bala = assets.image("""
-                        proyectil2
-                        """)
-                    vx = 50 if personaje.x > enemigo_actual.x else -50
-                    vy = 0
-                elif enemigo_actual.image == img_enemigo3:
-                    img_bala = assets.image("""
-                        proyectil1
-                        """)
-                    vx = 90 if personaje.x > enemigo_actual.x else -90
-                    vy = 0
-                elif enemigo_actual.image == img_enemigo2:
-                    img_bala = assets.image("""
-                        proyectil3
-                        """)
-                    vx = 0
-                    vy = 0
-                # Crear proyectil solo si img_bala está definida
-                if img_bala != None:
-                    bala = sprites.create_projectile_from_sprite(img_bala, enemigo_actual, vx, vy)
-                    bala.set_kind(SpriteKind.BalaEnemiga)
-                    if enemigo_actual.image == img_enemigo1:
-                        bala.lifespan = 2000
-                    elif enemigo_actual.image == img_enemigo3:
-                        bala.lifespan = 800
-                    elif enemigo_actual.image == img_enemigo2:
-                        bala.follow(personaje, 130)
-                        bala.lifespan = 4000
+
+    for enemigo_actual in sprites.all_of_kind(SpriteKind.enemy):
+        if enemigo_actual == None or enemigo_actual.image == None:
+            continue
+        # Probabilidad de disparo
+        if randint(0, 100) < 50:
+            
+            img_bala = None
+            velocidad_bala = 0
+            vida_bala = 0
+            # Enemigos con escopeta, fusil y francotirador
+            
+            if enemigo_actual.image == img_enemigo1:
+                img_bala = assets.image("""disparo1""")
+                velocidad_bala = 60
+                vida_bala = 600
+
+            elif enemigo_actual.image == img_enemigo2:
+                img_bala = assets.image("""disparo2""")
+                velocidad_bala = 180
+                vida_bala = 3000
+                
+            elif enemigo_actual.image == img_enemigo3:
+                img_bala = assets.image("""disparo3""")
+                velocidad_bala = 100
+                vida_bala = 1500
+            
+            # Disparo con punteria calculando la posición del Jugador
+            if img_bala != None:
+                bala = sprites.create_projectile_from_sprite(img_bala, enemigo_actual, 0, 0)
+                bala.set_kind(SpriteKind.BalaEnemiga)
+            
+                dx = personaje.x - enemigo_actual.x
+                dy = personaje.y - enemigo_actual.y
+                angulo = Math.atan2(dy, dx)
+                
+                vx = Math.cos(angulo) * velocidad_bala
+                vy = Math.sin(angulo) * velocidad_bala
+                
+                bala.set_velocity(vx, vy)
+                bala.lifespan = vida_bala
+
 game.on_update_interval(1000, on_update_interval)
+
+def on_status_bar_zero(status):
+    global kills, npcs_vivos
+    
+    enemigo_muerto = status.sprite_attached_to()
+    
+    sprites.destroy(enemigo_muerto, effects.fire, 500)
+    
+    kills += 1
+    npcs_vivos -= 1
+    info.change_score_by(1)
+    
+    if npcs_vivos == 0:
+        game.splash("VICTORY ROYALE!", "Kills: " + str(kills))
+        game.over(True)
+
+statusbars.on_zero(StatusBarKind.EnemyHealth, on_status_bar_zero)
