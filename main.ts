@@ -11,8 +11,9 @@ namespace SpriteKind {
 }
 
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function on_on_overlap(proyectil2: Sprite, enemigo2: Sprite) {
+    
     sprites.destroy(proyectil2)
-    let barra_enemigo = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemigo2)
+    barra_enemigo = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemigo2)
     if (barra_enemigo) {
         barra_enemigo.value += -20
         enemigo2.startEffect(effects.ashes, 100)
@@ -27,13 +28,18 @@ function habilidad_escudo() {
 
 sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_on_overlap2(jugador: Sprite, bala_mala: Sprite) {
     
-    let daño_recibido = 0
     //  Comparar imagenes para saber el daño
-    if (bala_mala.image == assets.image`disparo1`) {
+    if (bala_mala.image == assets.image`
+        disparo1
+        `) {
         daño_recibido = 30
-    } else if (bala_mala.image == assets.image`disparo2`) {
+    } else if (bala_mala.image == assets.image`
+        disparo2
+        `) {
         daño_recibido = 40
-    } else if (bala_mala.image == assets.image`disparo3`) {
+    } else if (bala_mala.image == assets.image`
+        disparo3
+        `) {
         daño_recibido = 20
     } else {
         daño_recibido = 10
@@ -254,6 +260,19 @@ function activar_npc(sprite: Sprite, npc: Sprite) {
     npc.destroy(effects.smiles, 300)
 }
 
+statusbars.onZero(StatusBarKind.EnemyHealth, function on_on_zero(status: StatusBarSprite) {
+    
+    enemigo_muerto = status.spriteAttachedTo()
+    sprites.destroy(enemigo_muerto, effects.fire, 500)
+    kills += 1
+    npcs_vivos += 0 - 1
+    info.changeScoreBy(1)
+    if (npcs_vivos == 0) {
+        game.splash("VICTORY ROYALE!", "Kills: " + ("" + ("" + kills)))
+        game.over(true)
+    }
+    
+})
 function spawnear_npcs() {
     let enemigo: Sprite;
     let barra: StatusBarSprite;
@@ -262,7 +281,9 @@ function spawnear_npcs() {
     //  Creación de enemigos con diferente vida según que haga cada uno
     while (i < 5) {
         enemigo = sprites.create(img_enemigo1, SpriteKind.Enemy)
-        tiles.placeOnRandomTile(enemigo, assets.tile`myTile6`)
+        tiles.placeOnRandomTile(enemigo, assets.tile`
+            myTile6
+            `)
         enemigo.follow(personaje, 40)
         barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
         barra.attachToSprite(enemigo)
@@ -275,7 +296,9 @@ function spawnear_npcs() {
     i = 0
     while (i < 5) {
         enemigo = sprites.create(img_enemigo2, SpriteKind.Enemy)
-        tiles.placeOnRandomTile(enemigo, assets.tile`myTile6`)
+        tiles.placeOnRandomTile(enemigo, assets.tile`
+            myTile6
+            `)
         barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
         barra.attachToSprite(enemigo)
         barra.max = 40
@@ -287,7 +310,9 @@ function spawnear_npcs() {
     i = 0
     while (i < 5) {
         enemigo = sprites.create(img_enemigo3, SpriteKind.Enemy)
-        tiles.placeOnRandomTile(enemigo, assets.tile`myTile6`)
+        tiles.placeOnRandomTile(enemigo, assets.tile`
+            myTile6
+            `)
         enemigo.setVelocity(50, 0)
         enemigo.setBounceOnWall(true)
         barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
@@ -303,6 +328,8 @@ function spawnear_npcs() {
 
 function iniciar_partida() {
     
+    music.stopAllSounds()
+    music.play(music.stringPlayable("C5 A B G A F G E ", 160), music.PlaybackMode.LoopingInBackground)
     sprites.destroy(cursor)
     sprites.destroy(boton_jugar)
     municion_actual = 150
@@ -328,11 +355,12 @@ function iniciar_partida() {
 //  --- FUNCIONES DE MENU ---
 function mostrar_menu() {
     
-    //  Asignar la imagen de fondo
+    music.stopAllSounds()
+    music.setVolume(100)
+    music.play(music.stringPlayable("E B C5 A B G A F ", 120), music.PlaybackMode.LoopingInBackground)
     scene.setBackgroundImage(assets.image`
         pantalla_inicial
         `)
-    //  Crear cursor
     cursor = sprites.create(image.create(5, 5), SpriteKind.Cursor)
     cursor.image.fill(1)
     cursor.setFlag(SpriteFlag.StayInScreen, true)
@@ -395,6 +423,9 @@ let y_inicio = 0
 let imagen_hitbox : Image = null
 let vida_jugador = 0
 let i = 0
+let npcs_vivos = 0
+let kills = 0
+let enemigo_muerto : Sprite = null
 let tipo = 0
 let fire_rate_boost = false
 let autobus2 : Sprite = null
@@ -415,15 +446,15 @@ let techo = false
 let fila = 0
 let col = 0
 let ubicacion : tiles.Location = null
+let personaje : Sprite = null
+let daño_recibido = 0
 let tiene_escudo = false
-let npcs_vivos = 0
-let kills = 0
+let barra_enemigo : StatusBarSprite = null
 let ultima_direccion = ""
 let img_enemigo3 : Image = null
 let img_enemigo2 : Image = null
 let img_enemigo1 : Image = null
 let en_bus = false
-let personaje : Sprite = null
 let MAP_SIZE = 0
 sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC1, activar_npc)
 sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC2, activar_npc)
@@ -543,15 +574,21 @@ game.onUpdateInterval(1000, function on_update_interval() {
             vida_bala = 0
             //  Enemigos con escopeta, fusil y francotirador
             if (enemigo_actual.image == img_enemigo1) {
-                img_bala = assets.image`disparo1`
+                img_bala = assets.image`
+                    disparo1
+                    `
                 velocidad_bala = 60
                 vida_bala = 600
             } else if (enemigo_actual.image == img_enemigo2) {
-                img_bala = assets.image`disparo2`
+                img_bala = assets.image`
+                    disparo2
+                    `
                 velocidad_bala = 180
                 vida_bala = 3000
             } else if (enemigo_actual.image == img_enemigo3) {
-                img_bala = assets.image`disparo3`
+                img_bala = assets.image`
+                    disparo3
+                    `
                 velocidad_bala = 100
                 vida_bala = 1500
             }
@@ -572,17 +609,4 @@ game.onUpdateInterval(1000, function on_update_interval() {
         }
         
     }
-})
-statusbars.onZero(StatusBarKind.EnemyHealth, function on_status_bar_zero(status: StatusBarSprite) {
-    
-    let enemigo_muerto = status.spriteAttachedTo()
-    sprites.destroy(enemigo_muerto, effects.fire, 500)
-    kills += 1
-    npcs_vivos -= 1
-    info.changeScoreBy(1)
-    if (npcs_vivos == 0) {
-        game.splash("VICTORY ROYALE!", "Kills: " + ("" + kills))
-        game.over(true)
-    }
-    
 })

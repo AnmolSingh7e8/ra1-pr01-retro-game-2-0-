@@ -11,8 +11,9 @@ class SpriteKind:
     NPC5 = SpriteKind.create()
 
 def on_on_overlap(proyectil2, enemigo2):
-    sprites.destroy(proyectil2) 
-    barra_enemigo = statusbars.get_status_bar_attached_to(StatusBarKind.EnemyHealth, enemigo2)
+    global barra_enemigo
+    sprites.destroy(proyectil2)
+    barra_enemigo = statusbars.get_status_bar_attached_to(StatusBarKind.enemy_health, enemigo2)
     if barra_enemigo:
         barra_enemigo.value += -20
         enemigo2.start_effect(effects.ashes, 100)
@@ -24,22 +25,24 @@ def habilidad_escudo():
     game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
 
 def on_on_overlap2(jugador, bala_mala):
-    global tiene_escudo
-    daño_recibido = 0
-
+    global daño_recibido, tiene_escudo
     # Comparar imagenes para saber el daño
-    if bala_mala.image == assets.image("""disparo1"""):
-        daño_recibido = 30 
-    elif bala_mala.image == assets.image("""disparo2"""):
+    if bala_mala.image == assets.image("""
+        disparo1
+        """):
+        daño_recibido = 30
+    elif bala_mala.image == assets.image("""
+        disparo2
+        """):
         daño_recibido = 40
-    elif bala_mala.image == assets.image("""disparo3"""):
-        daño_recibido = 20 
+    elif bala_mala.image == assets.image("""
+        disparo3
+        """):
+        daño_recibido = 20
     else:
         daño_recibido = 10
-
     sprites.destroy(bala_mala)
     scene.camera_shake(4, 500)
-    
     if tiene_escudo:
         personaje.start_effect(effects.fountain, 500)
         tiene_escudo = False
@@ -237,59 +240,69 @@ def activar_npc(sprite: Sprite, npc: Sprite):
         habilidad_fire_rate()
     npc.destroy(effects.smiles, 300)
 
+def on_on_zero(status):
+    global enemigo_muerto, kills, npcs_vivos
+    enemigo_muerto = status.sprite_attached_to()
+    sprites.destroy(enemigo_muerto, effects.fire, 500)
+    kills += 1
+    npcs_vivos += 0 - 1
+    info.change_score_by(1)
+    if npcs_vivos == 0:
+        game.splash("VICTORY ROYALE!", "Kills: " + ("" + str(kills)))
+        game.over(True)
+statusbars.on_zero(StatusBarKind.enemy_health, on_on_zero)
+
 def spawnear_npcs():
     global i, npcs_vivos
     lista_npcs: List[Sprite] = []
-    
     # Creación de enemigos con diferente vida según que haga cada uno
     while i < 5:
         enemigo = sprites.create(img_enemigo1, SpriteKind.enemy)
-        tiles.place_on_random_tile(enemigo, assets.tile("""myTile6"""))
+        tiles.place_on_random_tile(enemigo, assets.tile("""
+            myTile6
+            """))
         enemigo.follow(personaje, 40)
-        
-        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
-        barra.attach_to_sprite(enemigo) 
-        barra.max = 100 
-        barra.value = 100 
-        barra.set_color(7, 2) 
-        
+        barra = statusbars.create(20, 4, StatusBarKind.enemy_health)
+        barra.attach_to_sprite(enemigo)
+        barra.max = 100
+        barra.value = 100
+        barra.set_color(7, 2)
         lista_npcs.append(enemigo)
         i += 1
-        
     i = 0
-  
     while i < 5:
         enemigo = sprites.create(img_enemigo2, SpriteKind.enemy)
-        tiles.place_on_random_tile(enemigo, assets.tile("""myTile6"""))
-        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        tiles.place_on_random_tile(enemigo, assets.tile("""
+            myTile6
+            """))
+        barra = statusbars.create(20, 4, StatusBarKind.enemy_health)
         barra.attach_to_sprite(enemigo)
         barra.max = 40
         barra.value = 40
         barra.set_color(7, 2)
         lista_npcs.append(enemigo)
         i += 1
-        
     i = 0
-
     while i < 5:
         enemigo = sprites.create(img_enemigo3, SpriteKind.enemy)
-        tiles.place_on_random_tile(enemigo, assets.tile("""myTile6"""))
+        tiles.place_on_random_tile(enemigo, assets.tile("""
+            myTile6
+            """))
         enemigo.set_velocity(50, 0)
         enemigo.set_bounce_on_wall(True)
-        
-        barra = statusbars.create(20, 4, StatusBarKind.EnemyHealth)
+        barra = statusbars.create(20, 4, StatusBarKind.enemy_health)
         barra.attach_to_sprite(enemigo)
         barra.max = 60
         barra.value = 60
         barra.set_color(7, 2)
-        
         lista_npcs.append(enemigo)
         i += 1
-        
     npcs_vivos = len(lista_npcs)
-
 def iniciar_partida():
     global municion_actual, vida_jugador, personaje, juego_iniciado
+    music.stop_all_sounds()
+    music.play(music.string_playable("C5 A B G A F G E ", 160),
+        music.PlaybackMode.LOOPING_IN_BACKGROUND)
     sprites.destroy(cursor)
     sprites.destroy(boton_jugar)
     municion_actual = 150
@@ -313,11 +326,13 @@ def iniciar_partida():
 # --- FUNCIONES DE MENU ---
 def mostrar_menu():
     global cursor, imagen_hitbox, boton_jugar
-    # Asignar la imagen de fondo
+    music.stop_all_sounds()
+    music.set_volume(100)
+    music.play(music.string_playable("E B C5 A B G A F ", 120),
+        music.PlaybackMode.LOOPING_IN_BACKGROUND)
     scene.set_background_image(assets.image("""
         pantalla_inicial
         """))
-    # Crear cursor
     cursor = sprites.create(image.create(5, 5), SpriteKind.Cursor)
     cursor.image.fill(1)
     cursor.set_flag(SpriteFlag.STAY_IN_SCREEN, True)
@@ -373,6 +388,9 @@ y_inicio = 0
 imagen_hitbox: Image = None
 vida_jugador = 0
 i = 0
+npcs_vivos = 0
+kills = 0
+enemigo_muerto: Sprite = None
 tipo = 0
 fire_rate_boost = False
 autobus2: Sprite = None
@@ -393,15 +411,15 @@ techo = False
 fila = 0
 col = 0
 ubicacion: tiles.Location = None
+personaje: Sprite = None
+daño_recibido = 0
 tiene_escudo = False
-npcs_vivos = 0
-kills = 0
+barra_enemigo: StatusBarSprite = None
 ultima_direccion = ""
 img_enemigo3: Image = None
 img_enemigo2: Image = None
 img_enemigo1: Image = None
 en_bus = False
-personaje: Sprite = None
 MAP_SIZE = 0
 sprites.on_overlap(SpriteKind.player, SpriteKind.NPC1, activar_npc)
 sprites.on_overlap(SpriteKind.player, SpriteKind.NPC2, activar_npc)
@@ -484,63 +502,42 @@ game.on_update(on_on_update2)
 def on_update_interval():
     if not (juego_iniciado) or en_bus:
         return
-
     for enemigo_actual in sprites.all_of_kind(SpriteKind.enemy):
         if enemigo_actual == None or enemigo_actual.image == None:
             continue
         # Probabilidad de disparo
         if randint(0, 100) < 50:
-            
             img_bala = None
             velocidad_bala = 0
             vida_bala = 0
             # Enemigos con escopeta, fusil y francotirador
-            
             if enemigo_actual.image == img_enemigo1:
-                img_bala = assets.image("""disparo1""")
+                img_bala = assets.image("""
+                    disparo1
+                    """)
                 velocidad_bala = 60
                 vida_bala = 600
-
             elif enemigo_actual.image == img_enemigo2:
-                img_bala = assets.image("""disparo2""")
+                img_bala = assets.image("""
+                    disparo2
+                    """)
                 velocidad_bala = 180
                 vida_bala = 3000
-                
             elif enemigo_actual.image == img_enemigo3:
-                img_bala = assets.image("""disparo3""")
+                img_bala = assets.image("""
+                    disparo3
+                    """)
                 velocidad_bala = 100
                 vida_bala = 1500
-            
             # Disparo con punteria calculando la posición del Jugador
             if img_bala != None:
                 bala = sprites.create_projectile_from_sprite(img_bala, enemigo_actual, 0, 0)
                 bala.set_kind(SpriteKind.BalaEnemiga)
-            
                 dx = personaje.x - enemigo_actual.x
                 dy = personaje.y - enemigo_actual.y
                 angulo = Math.atan2(dy, dx)
-                
                 vx = Math.cos(angulo) * velocidad_bala
                 vy = Math.sin(angulo) * velocidad_bala
-                
                 bala.set_velocity(vx, vy)
                 bala.lifespan = vida_bala
-
 game.on_update_interval(1000, on_update_interval)
-
-def on_status_bar_zero(status):
-    global kills, npcs_vivos
-    
-    enemigo_muerto = status.sprite_attached_to()
-    
-    sprites.destroy(enemigo_muerto, effects.fire, 500)
-    
-    kills += 1
-    npcs_vivos -= 1
-    info.change_score_by(1)
-    
-    if npcs_vivos == 0:
-        game.splash("VICTORY ROYALE!", "Kills: " + str(kills))
-        game.over(True)
-
-statusbars.on_zero(StatusBarKind.EnemyHealth, on_status_bar_zero)
