@@ -1,4 +1,5 @@
 namespace SpriteKind {
+    //  Definición de identificadores para gestionar colisiones entre diferentes tipos de entidades
     export const BalaEnemiga = SpriteKind.create()
     export const Autobus = SpriteKind.create()
     export const Cursor = SpriteKind.create()
@@ -11,6 +12,8 @@ namespace SpriteKind {
 }
 
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function on_on_overlap(proyectil2: Sprite, enemigo2: Sprite) {
+    //  Evento de impacto de bala del jugador contra enemigo.
+    //  En lugar de destruir al enemigo inmediatamente, se reduce la barra de vida vinculada.
     
     sprites.destroy(proyectil2)
     barra_enemigo = statusbars.getStatusBarAttachedTo(StatusBarKind.EnemyHealth, enemigo2)
@@ -21,11 +24,15 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function on_on_overla
     
 })
 function habilidad_escudo() {
+    //  Activa el estado de invulnerabilidad para el siguiente golpe recibido
     
     tiene_escudo = true
     game.splash("NPC Escudo", "¡Resistes 1 golpe sin daño!")
 }
 
+//  --- CONTROLES DE MOVIMIENTO ---
+//  Estos eventos capturan la pulsación de teclas para activar
+//  la animación visual correspondiente hacia donde mira el personaje.
 controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
     
     if (!juego_iniciado) {
@@ -37,8 +44,9 @@ controller.up.onEvent(ControllerButtonEvent.Pressed, function on_up_pressed() {
             `, 200, true)
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_on_overlap2(jugador: Sprite, bala_mala: Sprite) {
+    //  Gestión de daño recibido por el jugador.
+    //  Detecta el tipo de bala según su imagen para aplicar daño variable (30, 40 o 20).
     
-    //  Comparar imagenes para saber el daño
     if (bala_mala.image == assets.image`
         disparo1
         `) {
@@ -46,17 +54,21 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_on_over
     } else if (bala_mala.image == assets.image`
         disparo2
         `) {
+        //  Escopeta
         daño_recibido = 40
     } else if (bala_mala.image == assets.image`
         disparo3
         `) {
+        //  Francotirador
         daño_recibido = 20
     } else {
+        //  Fusil
         daño_recibido = 10
     }
     
     sprites.destroy(bala_mala)
     scene.cameraShake(4, 500)
+    //  Verificación del estado de escudo: si está activo, anula el daño
     if (tiene_escudo) {
         personaje.startEffect(effects.fountain, 500)
         tiene_escudo = false
@@ -67,6 +79,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.BalaEnemiga, function on_on_over
     
 })
 controller.B.onEvent(ControllerButtonEvent.Pressed, function on_b_pressed() {
+    //  Botón de interacción secundaria: Abrir cofres
     
     if (!juego_iniciado) {
         return
@@ -75,6 +88,9 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function on_b_pressed() {
     Abrir_Cofre()
 })
 function Abrir_Cofre() {
+    //  Lógica de detección de tiles adyacentes.
+    //  Comprueba si hay un cofre cerrado en la dirección a la que mira el jugador.
+    //  Si lo encuentra, reemplaza el tile por uno abierto y otorga recompensa.
     
     ubicacion = personaje.tilemapLocation()
     col = ubicacion.column
@@ -122,8 +138,8 @@ function Abrir_Cofre() {
     }
     
     if (cofre_abierto) {
-        municion_actual += 30
-        game.splash("Cofre abierto!", "+30 municion")
+        municion_actual += 10
+        game.splash("Cofre abierto!", "+10 municion")
         cofre_abierto = false
     } else {
         game.splash("No hay cofre")
@@ -132,6 +148,7 @@ function Abrir_Cofre() {
 }
 
 function crear_npcs_especiales() {
+    //  Instancia los NPCs de habilidades en coordenadas fijas del mapa
     
     //  ZONA 1 – CURANDERO
     npc1 = sprites.create(assets.image`
@@ -161,12 +178,15 @@ function crear_npcs_especiales() {
 }
 
 function habilidad_velocidad() {
+    //  Modifica la velocidad base del controlador de movimiento
     controller.moveSprite(personaje, 150, 150)
     game.splash("NPC Corredor", "Velocidad aumentada!")
 }
 
 function disparar() {
     let proyectil: Sprite;
+    //  Lógica de creación de proyectiles del jugador.
+    //  Asigna velocidad vectorial basándose en la última dirección de movimiento registrada.
     
     if (municion_actual > 0) {
         municion_actual += -1
@@ -191,6 +211,10 @@ function disparar() {
 
 controller.A.onEvent(ControllerButtonEvent.Pressed, function on_a_pressed() {
     
+    //  Controlador de estados para el botón A (Acción principal):
+    //  1. Menú: Iniciar partida.
+    //  2. Autobús: Saltar al mapa.
+    //  3. Juego: Disparar arma.
     if (!juego_iniciado) {
         if (cursor.overlapsWith(boton_jugar)) {
             iniciar_partida()
@@ -235,6 +259,8 @@ function habilidad_fire_rate() {
 }
 
 function activar_npc(sprite: Sprite, npc: Sprite) {
+    //  Router de colisiones con NPCs aliados.
+    //  Identifica el tipo de NPC y ejecuta la función de mejora correspondiente.
     
     tipo = npc.kind()
     if (tipo == SpriteKind.NPC1) {
@@ -253,6 +279,8 @@ function activar_npc(sprite: Sprite, npc: Sprite) {
 }
 
 statusbars.onZero(StatusBarKind.EnemyHealth, function on_on_zero(status: StatusBarSprite) {
+    //  Evento de la extensión StatusBar: Se dispara cuando la vida de un enemigo llega a 0.
+    //  Gestiona la eliminación del enemigo, puntuación y condición de victoria.
     
     enemigo_muerto = status.spriteAttachedTo()
     sprites.destroy(enemigo_muerto, effects.fire, 500)
@@ -270,7 +298,9 @@ function spawnear_npcs() {
     let barra: StatusBarSprite;
     
     let lista_npcs : Sprite[] = []
-    //  Creación de enemigos con diferente vida según que haga cada uno
+    //  Generación procedimental de enemigos en el mapa.
+    //  Se crean 3 grupos con estadísticas (Velocidad, IA, Vida) diferenciadas.
+    //  Grupo 1: Tanques (Mucha vida, lentos)
     while (i < 5) {
         enemigo = sprites.create(img_enemigo1, SpriteKind.Enemy)
         tiles.placeOnRandomTile(enemigo, assets.tile`
@@ -286,6 +316,7 @@ function spawnear_npcs() {
         i += 1
     }
     i = 0
+    //  Grupo 2: Snipers (Poca vida, daño alto)
     while (i < 5) {
         enemigo = sprites.create(img_enemigo2, SpriteKind.Enemy)
         tiles.placeOnRandomTile(enemigo, assets.tile`
@@ -300,6 +331,7 @@ function spawnear_npcs() {
         i += 1
     }
     i = 0
+    //  Grupo 3: Soldados (Balanceados, movimiento de rebote)
     while (i < 5) {
         enemigo = sprites.create(img_enemigo3, SpriteKind.Enemy)
         tiles.placeOnRandomTile(enemigo, assets.tile`
@@ -319,12 +351,14 @@ function spawnear_npcs() {
 }
 
 function iniciar_partida() {
+    //  Inicialización del bucle principal del juego.
+    //  Resetea variables, carga el mapa, posiciona al jugador y arranca la música de batalla.
     
     music.stopAllSounds()
     music.play(music.stringPlayable("C5 A B G A F G E ", 160), music.PlaybackMode.LoopingInBackground)
     sprites.destroy(cursor)
     sprites.destroy(boton_jugar)
-    municion_actual = 150
+    municion_actual = 10
     vida_jugador = 100
     personaje = sprites.create(assets.image`
         personaje
@@ -356,6 +390,8 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function on_right_presse
 })
 function mostrar_menu() {
     
+    //  Configuración inicial de la pantalla de título (Lobby).
+    //  Crea el cursor y un botón invisible con hitbox sólida para detectar clics.
     music.stopAllSounds()
     music.setVolume(100)
     music.play(music.stringPlayable("E B C5 A B G A F ", 120), music.PlaybackMode.LoopingInBackground)
@@ -386,6 +422,8 @@ controller.down.onEvent(ControllerButtonEvent.Pressed, function on_down_pressed(
 function crear_autobus() {
     let x_inicio: number;
     let velocidad_x: number;
+    //  Crea la entidad del autobús de batalla al inicio de la partida.
+    //  Usa el flag GHOST para atravesar paredes y se mueve automáticamente.
     
     en_bus = true
     autobus2 = sprites.create(assets.image`
@@ -414,6 +452,9 @@ function habilidad_municion() {
     game.splash("NPC Munición", "+50 balas")
 }
 
+//  --- INICIALIZACIÓN DE VARIABLES GLOBALES ---
+//  Definición de estados iniciales, banderas y
+//  variables de control para la lógica del juego.
 let moviendo = false
 let y_inicio = 0
 let imagen_hitbox : Image = null
@@ -452,6 +493,8 @@ let img_enemigo2 : Image = null
 let img_enemigo1 : Image = null
 let en_bus = false
 let MAP_SIZE = 0
+//  --- CARGA DE ASSETS Y VINCULACIÓN DE EVENTOS ---
+//  Carga de recursos gráficos en memoria y registro de colisiones para los NPCs.
 sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC1, activar_npc)
 sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC2, activar_npc)
 sprites.onOverlap(SpriteKind.Player, SpriteKind.NPC3, activar_npc)
@@ -485,6 +528,7 @@ let npc_fire = assets.image`
 ultima_direccion = "derecha"
 mostrar_menu()
 game.onUpdate(function on_on_update() {
+    //  Comprobación continua: Si el autobús sale del mapa, fuerza el respawn
     
     if (!juego_iniciado) {
         return
@@ -503,6 +547,9 @@ game.onUpdate(function on_on_update() {
 })
 game.onUpdate(function on_on_update2() {
     let MAP_SIZE2: number;
+    //  Control de animaciones del jugador:
+    //  Detecta si se mueve para detener la animación si está quieto
+    //  y actualiza la dirección para apuntar correctamente al disparar.
     
     if (!juego_iniciado) {
         return
@@ -548,6 +595,9 @@ game.onUpdateInterval(1000, function on_update_interval() {
     let angulo: number;
     let vx: number;
     let vy: number;
+    //  Inteligencia Artificial de enemigos.
+    //  Calcula la trayectoria de disparo hacia el jugador usando trigonometría (atan2)
+    //  y asigna proyectiles diferentes según el tipo de enemigo.
     
     if (!juego_iniciado || en_bus) {
         return
@@ -558,7 +608,7 @@ game.onUpdateInterval(1000, function on_update_interval() {
             continue
         }
         
-        if (randint(0, 100) < 50) {
+        if (randint(0, 100) < 30) {
             img_bala = null
             velocidad_bala = 0
             vida_bala = 0
@@ -567,7 +617,7 @@ game.onUpdateInterval(1000, function on_update_interval() {
                     disparo1
                     `
                 velocidad_bala = 60
-                vida_bala = 600
+                vida_bala = 100
             } else if (enemigo_actual.image == img_enemigo2) {
                 img_bala = assets.image`
                     disparo2
@@ -579,7 +629,7 @@ game.onUpdateInterval(1000, function on_update_interval() {
                     disparo3
                     `
                 velocidad_bala = 100
-                vida_bala = 1500
+                vida_bala = 2000
             }
             
             if (img_bala != null) {
