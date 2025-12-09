@@ -311,7 +311,7 @@ function spawnear_npcs() {
         barra.attachToSprite(enemigo)
         barra.max = 100
         barra.value = 100
-        barra.setColor(7, 2)
+        barra.setColor(9, 2)
         lista_npcs.push(enemigo)
         i += 1
     }
@@ -326,7 +326,7 @@ function spawnear_npcs() {
         barra.attachToSprite(enemigo)
         barra.max = 40
         barra.value = 40
-        barra.setColor(7, 2)
+        barra.setColor(9, 2)
         lista_npcs.push(enemigo)
         i += 1
     }
@@ -343,7 +343,7 @@ function spawnear_npcs() {
         barra.attachToSprite(enemigo)
         barra.max = 60
         barra.value = 60
-        barra.setColor(7, 2)
+        barra.setColor(9, 2)
         lista_npcs.push(enemigo)
         i += 1
     }
@@ -617,7 +617,7 @@ game.onUpdateInterval(1000, function on_update_interval() {
                     disparo1
                     `
                 velocidad_bala = 60
-                vida_bala = 100
+                vida_bala = 1000
             } else if (enemigo_actual.image == img_enemigo2) {
                 img_bala = assets.image`
                     disparo2

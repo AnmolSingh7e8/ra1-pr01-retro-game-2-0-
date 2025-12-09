@@ -288,7 +288,7 @@ def spawnear_npcs():
         barra.attach_to_sprite(enemigo)
         barra.max = 100
         barra.value = 100
-        barra.set_color(7, 2)
+        barra.set_color(9, 2)
         lista_npcs.append(enemigo)
         i += 1
     i = 0
@@ -302,7 +302,7 @@ def spawnear_npcs():
         barra.attach_to_sprite(enemigo)
         barra.max = 40
         barra.value = 40
-        barra.set_color(7, 2)
+        barra.set_color(9, 2)
         lista_npcs.append(enemigo)
         i += 1
     i = 0
@@ -318,7 +318,7 @@ def spawnear_npcs():
         barra.attach_to_sprite(enemigo)
         barra.max = 60
         barra.value = 60
-        barra.set_color(7, 2)
+        barra.set_color(9, 2)
         lista_npcs.append(enemigo)
         i += 1
     npcs_vivos = len(lista_npcs)
@@ -561,7 +561,7 @@ def on_update_interval():
                     disparo1
                     """)
                 velocidad_bala = 60
-                vida_bala = 100
+                vida_bala = 1000
             elif enemigo_actual.image == img_enemigo2:
                 img_bala = assets.image("""
                     disparo2
