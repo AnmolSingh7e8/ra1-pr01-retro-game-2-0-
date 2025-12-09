@@ -136,8 +136,8 @@ def Abrir_Cofre():
                 """))
         cofre_abierto = True
     if cofre_abierto:
-        municion_actual += 10
-        game.splash("Cofre abierto!", "+10 municion")
+        municion_actual += 20
+        game.splash("Cofre abierto!", "+20 municion")
         cofre_abierto = False
     else:
         game.splash("No hay cofre")
@@ -332,7 +332,7 @@ def iniciar_partida():
         music.PlaybackMode.LOOPING_IN_BACKGROUND)
     sprites.destroy(cursor)
     sprites.destroy(boton_jugar)
-    municion_actual = 10
+    municion_actual = 30
     vida_jugador = 100
     personaje = sprites.create(assets.image("""
         personaje

@@ -138,8 +138,8 @@ function Abrir_Cofre() {
     }
     
     if (cofre_abierto) {
-        municion_actual += 10
-        game.splash("Cofre abierto!", "+10 municion")
+        municion_actual += 20
+        game.splash("Cofre abierto!", "+20 municion")
         cofre_abierto = false
     } else {
         game.splash("No hay cofre")
@@ -358,7 +358,7 @@ function iniciar_partida() {
     music.play(music.stringPlayable("C5 A B G A F G E ", 160), music.PlaybackMode.LoopingInBackground)
     sprites.destroy(cursor)
     sprites.destroy(boton_jugar)
-    municion_actual = 10
+    municion_actual = 30
     vida_jugador = 100
     personaje = sprites.create(assets.image`
         personaje
