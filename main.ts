@@ -608,7 +608,7 @@ game.onUpdateInterval(1000, function on_update_interval() {
             continue
         }
         
-        if (randint(0, 100) < 30) {
+        if (randint(0, 100) < 50) {
             img_bala = null
             velocidad_bala = 0
             vida_bala = 0

@@ -552,7 +552,7 @@ def on_update_interval():
     for enemigo_actual in sprites.all_of_kind(SpriteKind.enemy):
         if enemigo_actual == None or enemigo_actual.image == None:
             continue
-        if randint(0, 100) < 30:
+        if randint(0, 100) < 50:
             img_bala = None
             velocidad_bala = 0
             vida_bala = 0
